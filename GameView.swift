@@ -18,6 +18,8 @@ struct GameView: View {
     @State private var currentRound = 1
     @State private var guessMade = false
     @State private var distanceInKm: Double? = nil
+    @State private var showFullImage = false
+
 
     var gameSession: GameSession
     var settings: Settings
@@ -40,14 +42,17 @@ struct GameView: View {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(height: 320) // zwiększona wysokość
+                    .frame(height: 280)
                     .frame(maxWidth: .infinity)
                     .clipped()
                     .cornerRadius(16)
                     .shadow(radius: 5)
                     .padding(.horizontal)
-
+                    .onLongPressGesture {
+                        showFullImage = true
+                    }
             }
+
 
             // Mapa z interakcją
             TapableMapView(region: $region, userCoordinate: $userCoordinate, actualCoordinate: $actualCoordinate, isInteractionEnabled: !guessMade)
@@ -88,7 +93,27 @@ struct GameView: View {
         }
         .navigationBarBackButtonHidden(true)
         .onAppear(perform: loadPlaces)
+        
+        .sheet(isPresented: $showFullImage) {
+            if let imageData = currentPlace?.imageData,
+               let uiImage = UIImage(data: imageData) {
+                ZStack {
+                    Color.black.ignoresSafeArea()
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .padding()
+                        .background(Color.black)
+                        .onTapGesture {
+                            showFullImage = false
+                        }
+                }
+            }
+        }
     }
+       
+
+    
 
     // MARK: - Game Logic
     private func loadPlaces() {
