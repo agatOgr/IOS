@@ -48,8 +48,15 @@ struct GameHistoryView: View {
                 } else {
                     ForEach(sortedSessions) { session in
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Wynik średni: \(String(format: "%.2f", session.score)) km")
-                                .font(.headline)
+                            HStack {
+                                Text("Wynik średni: \(String(format: "%.2f", session.score)) km")
+                                    .font(.headline)
+                                if session.isFavorite {
+                                    Image(systemName: "star.fill")
+                                        .foregroundColor(.yellow)
+                                        .transition(.scale)
+                                }
+                            }
                             if let date = session.date {
                                 Text(dateFormatter.string(from: date))
                                     .font(.subheadline)
@@ -57,7 +64,11 @@ struct GameHistoryView: View {
                             }
                         }
                         .padding(.vertical, 6)
+                        .onTapGesture(count: 2) {
+                            toggleFavorite(for: session)
+                        }
                     }
+
                     .onDelete(perform: deleteSessions)
                 }
             }
@@ -93,4 +104,14 @@ struct GameHistoryView: View {
             print("Błąd usuwania sesji: \(error.localizedDescription)")
         }
     }
+    
+    private func toggleFavorite(for session: GameSession) {
+        session.isFavorite.toggle()
+        do {
+            try viewContext.save()
+        } catch {
+            print("Błąd zapisu ulubionej sesji: \(error.localizedDescription)")
+        }
+    }
+
 }
